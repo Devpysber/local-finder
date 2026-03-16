@@ -1,0 +1,5 @@
+{
+  "name": "LocalFinder",
+  "description": "A modern local business directory app similar to Justdial.",
+  "requestFramePermissions": ["geolocation"]
+}
