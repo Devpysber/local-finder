@@ -41,6 +41,26 @@ export const BusinessDetailsScreen = ({
     setNewReviewText('');
   };
 
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: business.name,
+          text: `Check out ${business.name} on our app!`,
+          url: window.location.href,
+        });
+      } else {
+        alert(`Share this link: ${window.location.href}`);
+      }
+    } catch (error) {
+      console.log('Error sharing', error);
+    }
+  };
+
+  const handleGetDirections = () => {
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(business.address)}`, '_blank');
+  };
+
   const images = business.images && business.images.length > 0 ? business.images : [business.image];
 
   return (
@@ -75,7 +95,7 @@ export const BusinessDetailsScreen = ({
             <ArrowLeft size={24} />
           </button>
           <div className="flex gap-3">
-            <button className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white">
+            <button onClick={handleShare} className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white">
               <Share2 size={20} />
             </button>
             <button 
@@ -137,13 +157,18 @@ export const BusinessDetailsScreen = ({
             <MapPin size={20} className="text-gray-400 mt-0.5 shrink-0" />
             <div>
               <p className="text-sm font-medium text-gray-900">{business.address}</p>
-              <button className="text-blue-600 text-xs font-bold mt-1">Get Directions</button>
+              <button onClick={handleGetDirections} className="text-blue-600 text-xs font-bold mt-1">Get Directions</button>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Clock size={20} className="text-gray-400 shrink-0" />
-            <p className="text-sm font-medium text-gray-900">{business.hours}</p>
-          </div>
+        </div>
+      </div>
+
+      {/* Hours Section */}
+      <div className="bg-white p-4 mb-2 shadow-sm">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Opening Hours</h2>
+        <div className="flex items-center gap-3">
+          <Clock size={20} className="text-gray-400 shrink-0" />
+          <p className="text-sm font-medium text-gray-900">{business.hours}</p>
         </div>
       </div>
 

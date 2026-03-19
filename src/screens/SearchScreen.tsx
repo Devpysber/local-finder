@@ -25,8 +25,10 @@ export const SearchScreen = ({
   const [minRating, setMinRating] = useState<number>(0);
   const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
   const allAmenities = Array.from(new Set(BUSINESSES.flatMap(b => b.amenities || [])));
+  const allServices = Array.from(new Set(BUSINESSES.flatMap(b => b.services || [])));
 
   const toggleAmenity = (amenity: string) => {
     setSelectedAmenities(prev => 
@@ -34,10 +36,17 @@ export const SearchScreen = ({
     );
   };
 
+  const toggleService = (service: string) => {
+    setSelectedServices(prev => 
+      prev.includes(service) ? prev.filter(s => s !== service) : [...prev, service]
+    );
+  };
+
   const clearFilters = () => {
     setMinRating(0);
     setSelectedPrice(null);
     setSelectedAmenities([]);
+    setSelectedServices([]);
   };
 
   const filteredBusinesses = BUSINESSES.filter(b => {
@@ -48,8 +57,10 @@ export const SearchScreen = ({
     const matchesPrice = selectedPrice ? b.priceRange === selectedPrice : true;
     const matchesAmenities = selectedAmenities.length === 0 || 
       selectedAmenities.every(a => b.amenities?.includes(a));
+    const matchesServices = selectedServices.length === 0 || 
+      selectedServices.every(s => b.services?.includes(s));
 
-    return matchesQuery && matchesCategory && matchesRating && matchesPrice && matchesAmenities;
+    return matchesQuery && matchesCategory && matchesRating && matchesPrice && matchesAmenities && matchesServices;
   });
 
   return (
@@ -80,7 +91,7 @@ export const SearchScreen = ({
             className="flex items-center gap-1 bg-gray-100 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 whitespace-nowrap"
           >
             <SlidersHorizontal size={14} /> Filters
-            {(minRating > 0 || selectedPrice || selectedAmenities.length > 0) && (
+            {(minRating > 0 || selectedPrice || selectedAmenities.length > 0 || selectedServices.length > 0) && (
               <span className="w-2 h-2 rounded-full bg-blue-600 ml-1"></span>
             )}
           </button>
@@ -203,6 +214,29 @@ export const SearchScreen = ({
                         onChange={() => toggleAmenity(amenity)}
                       />
                       <span className="text-sm text-gray-700 font-medium">{amenity}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Services */}
+              <div className="mb-6">
+                <h3 className="text-sm font-bold text-gray-900 mb-3">Services</h3>
+                <div className="flex flex-col gap-3">
+                  {allServices.map(service => (
+                    <label key={service} className="flex items-center gap-3 cursor-pointer group">
+                      <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${
+                        selectedServices.includes(service) ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300 group-hover:border-blue-400'
+                      }`}>
+                        {selectedServices.includes(service) && <Check size={14} className="text-white" />}
+                      </div>
+                      <input 
+                        type="checkbox" 
+                        className="hidden" 
+                        checked={selectedServices.includes(service)}
+                        onChange={() => toggleService(service)}
+                      />
+                      <span className="text-sm text-gray-700 font-medium">{service}</span>
                     </label>
                   ))}
                 </div>

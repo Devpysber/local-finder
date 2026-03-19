@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScreenType, Business, AdCreative, Campaign, ClaimRequest, AdminNotification } from './types';
+import { ScreenType, Business, AdCreative, Campaign, ClaimRequest, AdminNotification, UserNotification } from './types';
 import { BottomNav } from './components';
 import { BUSINESSES } from './data';
 
@@ -26,6 +26,7 @@ export default function App() {
   const [businesses, setBusinesses] = useState<Business[]>(BUSINESSES);
   const [claimRequests, setClaimRequests] = useState<ClaimRequest[]>([]);
   const [adminNotifications, setAdminNotifications] = useState<AdminNotification[]>([]);
+  const [userNotifications, setUserNotifications] = useState<UserNotification[]>([]);
 
   const handleNavigate = (screen: ScreenType, query?: string) => {
     setCurrentScreen(screen);
@@ -119,6 +120,8 @@ export default function App() {
             setCampaigns={setCampaigns}
             setClaimRequests={setClaimRequests}
             setAdminNotifications={setAdminNotifications}
+            userNotifications={userNotifications}
+            setUserNotifications={setUserNotifications}
           />
         )}
 
@@ -133,6 +136,7 @@ export default function App() {
             setClaimRequests={setClaimRequests}
             adminNotifications={adminNotifications}
             setAdminNotifications={setAdminNotifications}
+            setUserNotifications={setUserNotifications}
           />
         )}
 

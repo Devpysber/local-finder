@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScreenType, AdCreative, Business, Campaign, ClaimRequest, AdminNotification } from '../types';
+import { ScreenType, AdCreative, Business, Campaign, ClaimRequest, AdminNotification, UserNotification } from '../types';
 import { GoogleGenAI } from '@google/genai';
 import { 
   BarChart3, 
@@ -27,7 +27,8 @@ import {
   Facebook,
   Instagram,
   Search,
-  Download
+  Download,
+  Bell
 } from 'lucide-react';
 import {
   LineChart,
@@ -86,7 +87,9 @@ export const BusinessDashboardScreen = ({
   campaigns,
   setCampaigns,
   setClaimRequests,
-  setAdminNotifications
+  setAdminNotifications,
+  userNotifications,
+  setUserNotifications
 }: { 
   onNavigate: (s: ScreenType) => void,
   adCreatives: AdCreative[],
@@ -96,7 +99,9 @@ export const BusinessDashboardScreen = ({
   campaigns: Campaign[],
   setCampaigns: React.Dispatch<React.SetStateAction<Campaign[]>>,
   setClaimRequests: React.Dispatch<React.SetStateAction<ClaimRequest[]>>,
-  setAdminNotifications: React.Dispatch<React.SetStateAction<AdminNotification[]>>
+  setAdminNotifications: React.Dispatch<React.SetStateAction<AdminNotification[]>>,
+  userNotifications: UserNotification[],
+  setUserNotifications: React.Dispatch<React.SetStateAction<UserNotification[]>>
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'leads' | 'listings' | 'reports'>('overview');
   const [showGenerateModal, setShowGenerateModal] = useState(false);
@@ -130,6 +135,7 @@ export const BusinessDashboardScreen = ({
   
   const [reportDateRange, setReportDateRange] = useState('7days');
   const [showGoals, setShowGoals] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // Mock current user ID
   const CURRENT_USER_ID = 'u2';
@@ -377,12 +383,50 @@ export const BusinessDashboardScreen = ({
             <h1 className="text-2xl font-bold text-white">Business Portal</h1>
             <p className="text-blue-100 text-sm">Manage your AI-powered growth</p>
           </div>
-          <button 
-            onClick={() => onNavigate('login')}
-            className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm"
-          >
-            <LogOut size={18} />
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <button 
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                  if (!showNotifications && userNotifications.some(n => !n.read)) {
+                    setUserNotifications(prev => prev.map(n => ({ ...n, read: true })));
+                  }
+                }}
+                className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm relative"
+              >
+                <Bell size={18} />
+                {userNotifications.filter(n => !n.read).length > 0 && (
+                  <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-blue-600"></span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="absolute top-12 right-0 w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="p-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                    <h3 className="font-bold text-gray-900 text-sm">Notifications</h3>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {userNotifications.length === 0 ? (
+                      <p className="text-xs text-gray-500 text-center py-4">No notifications</p>
+                    ) : (
+                      userNotifications.map(notif => (
+                        <div key={notif.id} className="p-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                          <p className="text-xs text-gray-800">{notif.message}</p>
+                          <p className="text-[10px] text-gray-400 mt-1">{notif.date}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            <button 
+              onClick={() => onNavigate('login')}
+              className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
         </div>
         
         {/* Quick Stats */}

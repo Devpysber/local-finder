@@ -57,6 +57,15 @@ export interface AdminNotification {
   type: 'claim' | 'system';
 }
 
+export interface UserNotification {
+  id: string;
+  userId: string;
+  message: string;
+  date: string;
+  read: boolean;
+  type: 'claim_approved' | 'claim_rejected' | 'system';
+}
+
 export interface Business {
   id: string;
   name: string;
@@ -79,4 +88,5 @@ export interface Business {
   reviews?: Review[];
   claimStatus?: 'unclaimed' | 'pending' | 'claimed';
   ownerId?: string;
+  dateAdded?: string;
 }
