@@ -159,10 +159,10 @@ export const BUSINESSES: Business[] = [
 ];
 
 export const USERS: User[] = [
-  { id: 'u1', name: 'Admin User', email: 'admin@localfinder.com', role: 'admin', status: 'active' },
-  { id: 'u2', name: 'Spice Route Owner', email: 'owner@spiceroute.com', role: 'business', status: 'active' },
-  { id: 'u3', name: 'Elite Gym Manager', email: 'manager@elitegym.com', role: 'business', status: 'active' },
-  { id: 'u4', name: 'Regular User', email: 'user@example.com', role: 'user', status: 'active' },
+  { id: 'u1', name: 'Admin User', email: 'admin@localfinder.com', role: 'admin', status: 'active', lastLogin: '2026-03-21T10:00:00Z' },
+  { id: 'u2', name: 'Spice Route Owner', email: 'owner@spiceroute.com', role: 'business', status: 'active', lastLogin: '2026-03-20T14:30:00Z' },
+  { id: 'u3', name: 'Elite Gym Manager', email: 'manager@elitegym.com', role: 'business', status: 'active', lastLogin: '2026-03-19T09:15:00Z' },
+  { id: 'u4', name: 'Regular User', email: 'user@example.com', role: 'user', status: 'active', lastLogin: '2026-03-18T16:45:00Z' },
 ];
 
 export const TRENDING_SEARCHES = ['Restaurants near me', 'AC Repair', 'Dentists', 'Packers and Movers'];

@@ -15,6 +15,7 @@ export interface User {
   email: string;
   role: 'user' | 'business' | 'admin';
   status: 'active' | 'suspended';
+  lastLogin?: string;
 }
 
 export interface Campaign {

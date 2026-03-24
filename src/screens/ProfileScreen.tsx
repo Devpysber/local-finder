@@ -1,13 +1,14 @@
 import React from 'react';
 import { ScreenType } from '../types';
-import { User, Settings, Star, Clock, MapPin, ChevronRight, LogOut, PlusCircle } from 'lucide-react';
+import { User, Settings, Star, Clock, MapPin, ChevronRight, LogOut, PlusCircle, Briefcase } from 'lucide-react';
 
 export const ProfileScreen = ({ onNavigate }: { onNavigate: (s: ScreenType) => void }) => {
   const menuItems = [
-    { icon: MapPin, label: 'Saved Addresses', value: '3' },
-    { icon: Star, label: 'My Reviews', value: '12' },
-    { icon: Clock, label: 'Recent Searches', value: '' },
-    { icon: Settings, label: 'Settings', value: '' },
+    { icon: MapPin, label: 'Saved Addresses', value: '3', action: () => {} },
+    { icon: Star, label: 'My Reviews', value: '12', action: () => {} },
+    { icon: Clock, label: 'Recent Searches', value: '', action: () => {} },
+    { icon: Settings, label: 'Settings', value: '', action: () => {} },
+    { icon: Briefcase, label: 'B2B Portal Login', value: '', action: () => onNavigate('login') },
   ];
 
   return (
@@ -58,6 +59,7 @@ export const ProfileScreen = ({ onNavigate }: { onNavigate: (s: ScreenType) => v
             return (
               <div 
                 key={index} 
+                onClick={item.action}
                 className={`flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
                   index !== menuItems.length - 1 ? 'border-b border-gray-100' : ''
                 }`}

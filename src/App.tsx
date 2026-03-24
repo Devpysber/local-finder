@@ -86,6 +86,9 @@ export default function App() {
             onBack={() => handleNavigate('home')}
             isFavorite={favorites.includes(selectedBusiness.id)}
             onToggleFavorite={toggleFavorite}
+            setClaimRequests={setClaimRequests}
+            setAdminNotifications={setAdminNotifications}
+            setBusinesses={setBusinesses}
           />
         )}
         
@@ -136,6 +139,7 @@ export default function App() {
             setClaimRequests={setClaimRequests}
             adminNotifications={adminNotifications}
             setAdminNotifications={setAdminNotifications}
+            userNotifications={userNotifications}
             setUserNotifications={setUserNotifications}
           />
         )}

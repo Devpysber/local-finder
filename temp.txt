@@ -1,0 +1,502 @@
+51-  setBusinesses,
+52-  claimRequests,
+53-  setClaimRequests,
+54-  adminNotifications,
+55-  setAdminNotifications,
+56-  userNotifications,
+57-  setUserNotifications
+58-}: { 
+59-  onNavigate: (s: ScreenType) => void,
+60-  adCreatives: AdCreative[],
+61-  setAdCreatives: React.Dispatch<React.SetStateAction<AdCreative[]>>,
+62-  businesses: Business[],
+63-  setBusinesses: React.Dispatch<React.SetStateAction<Business[]>>,
+64-  claimRequests: ClaimRequest[],
+65-  setClaimRequests: React.Dispatch<React.SetStateAction<ClaimRequest[]>>,
+66-  adminNotifications: AdminNotification[],
+67-  setAdminNotifications: React.Dispatch<React.SetStateAction<AdminNotification[]>>,
+68-  userNotifications: UserNotification[],
+69-  setUserNotifications: React.Dispatch<React.SetStateAction<UserNotification[]>>
+70-}) => {
+71:  const [activeTab, setActiveTab] = useState<'overview' | 'creatives' | 'listings' | 'users' | 'history' | 'verification' | 'analytics' | 'user-notifications' | 'map' | 'settings'>('users');
+72-  const [showBusinessModal, setShowBusinessModal] = useState(false);
+73-  const [showClaimModal, setShowClaimModal] = useState(false);
+74-  const [showNotifications, setShowNotifications] = useState(false);
+75-  const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
+76-  const [editingUser, setEditingUser] = useState<User | null>(null);
+77-  const [businessToDelete, setBusinessToDelete] = useState<string | null>(null);
+78-  const [selectedMapBusiness, setSelectedMapBusiness] = useState<Business | null>(null);
+79-
+80-  useEffect(() => {
+81:    if (activeTab === 'user-notifications') {
+82-      const hasUnread = userNotifications.some(n => !n.read);
+83-      if (hasUnread) {
+84-        setUserNotifications(prev => prev.map(n => ({ ...n, read: true })));
+85-      }
+86-    }
+87:  }, [activeTab, userNotifications, setUserNotifications]);
+88-
+89-  // Modals state
+90-  const [claimAction, setClaimAction] = useState<{ id: string, name: string, status: 'claimed' | 'unclaimed' } | null>(null);
+91-  const [userAction, setUserAction] = useState<{ type: 'role' | 'status', id: string, name: string, value: string } | null>(null);
+92-  const [viewingBusiness, setViewingBusiness] = useState<Business | null>(null);
+93-
+94-  const CURRENT_USER_ID = 'u1';
+95-  const myBusinesses = businesses.filter(b => b.ownerId === CURRENT_USER_ID);
+96-  const hasClaimedBusiness = myBusinesses.some(b => b.claimStatus === 'claimed');
+97-  const unclaimedBusinesses = businesses.filter(b => !b.claimStatus || b.claimStatus === 'unclaimed');
+98-
+99-  const [users, setUsers] = useState<User[]>(USERS);
+100-  const [businessFormData, setBusinessFormData] = useState<Partial<Business>>({
+101-    name: '',
+102-    category: '',
+103-    address: '',
+104-    phone: '',
+105-    website: '',
+106-    description: '',
+107-    image: 'https://picsum.photos/seed/newbiz/400/300'
+--
+487-              <UsersIcon size={14} className="text-blue-400" />
+488-            </div>
+489-            <p className="text-2xl font-bold text-white">{USERS.length}</p>
+490-            <p className="text-green-400 text-[10px] mt-1">Active accounts</p>
+491-          </div>
+492-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+493-            <div className="flex items-center justify-between mb-2">
+494-              <p className="text-gray-400 text-xs font-medium">Pending Actions</p>
+495-              <AlertTriangle size={14} className="text-amber-400" />
+496-            </div>
+497-            <p className="text-2xl font-bold text-white">{pendingCreatives.length + pendingClaims.length}</p>
+498-            <p className="text-amber-400 text-[10px] mt-1">Requires review</p>
+499-          </div>
+500-        </div>
+501-      </div>
+502-
+503-      {/* Tabs */}
+504-      <div className="flex px-4 mt-4 gap-2 overflow-x-auto scrollbar-hide pb-2">
+505-        <button 
+506-          onClick={() => setActiveTab('overview')}
+507:          className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors ${activeTab === 'overview' ? 'bg-gray-900 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200'}`}
+508-        >
+509-          Overview
+510-        </button>
+511-        <button 
+512-          onClick={() => setActiveTab('listings')}
+513:          className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 ${activeTab === 'listings' ? 'bg-gray-900 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200'}`}
+514-        >
+515-          Listings
+516-        </button>
+517-        <button 
+518-          onClick={() => setActiveTab('map')}
+519:          className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 ${activeTab === 'map' ? 'bg-gray-900 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200'}`}
+520-        >
+521-          Map View
+522-        </button>
+523-        <button 
+524-          onClick={() => setActiveTab('creatives')}
+525:          className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 ${activeTab === 'creatives' ? 'bg-gray-900 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200'}`}
+526-        >
+527-          Ads
+528-          {pendingCreatives.length > 0 && (
+529-            <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+530-              {pendingCreatives.length}
+531-            </span>
+532-          )}
+533-        </button>
+534-        <button 
+535-          onClick={() => setActiveTab('users')}
+536:          className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors ${activeTab === 'users' ? 'bg-gray-900 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200'}`}
+537-        >
+538-          User Roles
+539-        </button>
+540-        <button 
+541-          onClick={() => setActiveTab('verification')}
+542:          className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 ${activeTab === 'verification' ? 'bg-gray-900 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200'}`}
+543-        >
+544-          Business Verification
+545-          {pendingClaims.length > 0 && (
+546-            <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+547-              {pendingClaims.length}
+548-            </span>
+549-          )}
+550-        </button>
+551-        <button 
+552-          onClick={() => setActiveTab('history')}
+553:          className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors ${activeTab === 'history' ? 'bg-gray-900 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200'}`}
+554-        >
+555-          History
+556-        </button>
+557-        <button 
+558-          onClick={() => setActiveTab('analytics')}
+559:          className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors ${activeTab === 'analytics' ? 'bg-gray-900 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200'}`}
+560-        >
+561-          Analytics
+562-        </button>
+563-        <button 
+564-          onClick={() => setActiveTab('user-notifications')}
+565:          className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 ${activeTab === 'user-notifications' ? 'bg-gray-900 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200'}`}
+566-        >
+567-          User Notifications
+568-          {userNotifications.filter(n => !n.read).length > 0 && (
+569-            <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+570-              {userNotifications.filter(n => !n.read).length}
+571-            </span>
+572-          )}
+573-        </button>
+574-        <button 
+575-          onClick={() => setActiveTab('settings')}
+576:          className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 ${activeTab === 'settings' ? 'bg-gray-900 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200'}`}
+577-        >
+578-          <Settings size={16} />
+579-          Settings
+580-        </button>
+581-      </div>
+582-
+583-      <div className="px-4 py-4 flex flex-col gap-4">
+584:        {activeTab === 'overview' ? (
+585-          <>
+586-            <h2 className="text-lg font-bold text-gray-900 px-2">AI Ads Platform</h2>
+587-
+588-            {!hasClaimedBusiness && (
+589-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-2 flex items-start gap-3">
+590-                <AlertCircle className="text-amber-600 shrink-0 mt-0.5" size={20} />
+591-                <div>
+592-                  <h3 className="text-amber-800 font-bold text-sm mb-1">Claim a listing to start growing</h3>
+593-                  <p className="text-amber-700 text-xs mb-3">You need an active, claimed listing to use the AI Marketing Suite and run ads.</p>
+594-                  <button 
+595-                    onClick={() => {
+596-                      setActiveTab('listings');
+597-                      setShowClaimModal(true);
+598-                    }}
+599-                    className="bg-amber-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm"
+600-                  >
+601-                    Go to My Listings
+602-                  </button>
+603-                </div>
+604-              </div>
+--
+641-            <div className="grid grid-cols-2 gap-4">
+642-              {/* Moderation Queue */}
+643-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col items-center text-center">
+644-                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center mb-3">
+645-                  <AlertTriangle size={20} className="text-amber-600" />
+646-                </div>
+647-                <h3 className="font-bold text-gray-900 text-sm mb-1">Moderation</h3>
+648-                <p className="text-[10px] text-gray-500">{pendingCreatives.length + pendingClaims.length} items pending review</p>
+649-              </div>
+650-
+651-              {/* System Settings */}
+652-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col items-center text-center">
+653-                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+654-                  <Settings size={20} className="text-gray-600" />
+655-                </div>
+656-                <h3 className="font-bold text-gray-900 text-sm mb-1">Settings</h3>
+657-                <p className="text-[10px] text-gray-500">Configure global app parameters</p>
+658-              </div>
+659-            </div>
+660-          </>
+661:        ) : activeTab === 'creatives' ? (
+662-          <>
+663-            <div className="flex flex-col gap-3 px-2 mb-4">
+664-              <div className="flex justify-between items-center">
+665-                <h2 className="text-lg font-bold text-gray-900">AI Creatives Review</h2>
+666-                <span className="text-xs text-gray-500">{adCreatives.length} Total</span>
+667-              </div>
+668-
+669-              <div className="flex gap-2">
+670-                <div className="relative flex-1">
+671-                  <input
+672-                    type="text"
+673-                    placeholder="Search creatives..."
+674-                    value={creativeSearchQuery}
+675-                    onChange={(e) => setCreativeSearchQuery(e.target.value)}
+676-                    className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+677-                  />
+678-                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+679-                </div>
+680-                <select
+681-                  value={creativeStatusFilter}
+--
+749-                          <button 
+750-                            onClick={() => handleUpdateAdStatus(creative.id, 'rejected')}
+751-                            className="flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-red-600 bg-red-50 border border-red-100 active:scale-[0.98] transition-transform"
+752-                          >
+753-                            <XCircle size={18} /> Reject
+754-                          </button>
+755-                          <button 
+756-                            onClick={() => handleUpdateAdStatus(creative.id, 'approved')}
+757-                            className="flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-green-600 bg-green-50 border border-green-100 active:scale-[0.98] transition-transform"
+758-                          >
+759-                            <CheckCircle size={18} /> Approve
+760-                          </button>
+761-                        </div>
+762-                      )}
+763-                    </div>
+764-                  </div>
+765-                ))}
+766-              </div>
+767-            )}
+768-          </>
+769:        ) : activeTab === 'map' ? (
+770-          <>
+771-            <div className="flex flex-col gap-3 px-2 mb-4">
+772-              <div className="flex justify-between items-center">
+773-                <h2 className="text-lg font-bold text-gray-900">Map View</h2>
+774-              </div>
+775-              <div className="relative">
+776-                <input
+777-                  type="text"
+778-                  placeholder="Search businesses by name or category..."
+779-                  value={mapSearchQuery}
+780-                  onChange={(e) => setMapSearchQuery(e.target.value)}
+781-                  className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+782-                />
+783-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+784-              </div>
+785-            </div>
+786-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-[600px] z-0">
+787-              <MapContainer center={[37.7749, -122.4194]} zoom={12} style={{ height: '100%', width: '100%' }}>
+788-                <TileLayer
+789-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+--
+851-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+852-                        selectedMapBusiness.claimStatus === 'claimed' ? 'bg-green-100 text-green-700' :
+853-                        selectedMapBusiness.claimStatus === 'pending' ? 'bg-amber-100 text-amber-700' :
+854-                        'bg-gray-100 text-gray-600'
+855-                      }`}>
+856-                        {selectedMapBusiness.claimStatus.toUpperCase()}
+857-                      </span>
+858-                      <span className="text-xs text-gray-500">{selectedMapBusiness.category}</span>
+859-                    </div>
+860-                  </div>
+861-                </div>
+862-                <button 
+863-                  onClick={() => setViewingBusiness(selectedMapBusiness)}
+864-                  className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-bold hover:bg-blue-100 transition-colors"
+865-                >
+866-                  View Details
+867-                </button>
+868-              </div>
+869-            )}
+870-          </>
+871:        ) : activeTab === 'listings' ? (
+872-          <>
+873-            <div className="flex flex-col gap-3 px-2 mb-4">
+874-              <div className="flex justify-between items-center">
+875-                <h2 className="text-lg font-bold text-gray-900">Listings Management</h2>
+876-                <button 
+877-                  onClick={handleOpenAddBusiness}
+878-                  className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm"
+879-                >
+880-                  <Plus size={14} /> Add Listing
+881-                </button>
+882-              </div>
+883-
+884-              <div className="flex gap-2">
+885-                <div className="relative flex-1">
+886-                  <input
+887-                    type="text"
+888-                    placeholder="Search businesses by name or address..."
+889-                    value={businessSearchQuery}
+890-                    onChange={(e) => setBusinessSearchQuery(e.target.value)}
+891-                    className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-10 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+--
+977-                            <Eye size={14} />
+978-                          </button>
+979-                          <button onClick={() => handleOpenEditBusiness(business)} className="text-gray-400 hover:text-blue-600" title="Edit">
+980-                            <Edit2 size={14} />
+981-                          </button>
+982-                          <button onClick={() => handleDeleteBusiness(business.id)} className="text-gray-400 hover:text-red-600" title="Delete">
+983-                            <Trash2 size={14} />
+984-                          </button>
+985-                        </div>
+986-                      </div>
+987-                      <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+988-                        <MapPin size={12} /> {business.address}
+989-                      </p>
+990-                    </div>
+991-                  </div>
+992-                </div>
+993-                ))
+994-              )}
+995-            </div>
+996-          </>
+997:        ) : activeTab === 'users' ? (
+998-          <UserRolesTab
+999-            users={users}
+1000-            filteredUsers={filteredUsers}
+1001-            userSearchQuery={userSearchQuery}
+1002-            setUserSearchQuery={setUserSearchQuery}
+1003-            userRoleFilter={userRoleFilter}
+1004-            setUserRoleFilter={setUserRoleFilter}
+1005-            userStatusFilter={userStatusFilter}
+1006-            setUserStatusFilter={setUserStatusFilter}
+1007-            userSortBy={userSortBy}
+1008-            setUserSortBy={setUserSortBy}
+1009-            userSortOrder={userSortOrder}
+1010-            setUserSortOrder={setUserSortOrder}
+1011-            selectedUsers={selectedUsers}
+1012-            setSelectedUsers={setSelectedUsers}
+1013-            handleBulkRoleUpdate={handleBulkRoleUpdate}
+1014-            handleBulkStatusUpdate={handleBulkStatusUpdate}
+1015-            handleUpdateUserRole={handleUpdateUserRole}
+1016-            handleUpdateUserStatus={handleUpdateUserStatus}
+1017-            setEditingUser={setEditingUser}
+1018-          />
+1019:        ) : activeTab === 'verification' ? (
+1020-          <BusinessVerificationTab 
+1021-            pendingClaims={pendingClaims}
+1022-            verificationSearchQuery={verificationSearchQuery}
+1023-            setVerificationSearchQuery={setVerificationSearchQuery}
+1024-            getClaimAgeTag={getClaimAgeTag}
+1025-            setViewingBusiness={setViewingBusiness}
+1026-            handleUpdateClaimStatus={handleUpdateClaimStatus}
+1027-            claimRequests={claimRequests}
+1028-          />
+1029:        ) : activeTab === 'history' ? (
+1030-          <>
+1031-            <div className="flex flex-col gap-3 px-2 mb-4">
+1032-              <div className="flex justify-between items-center">
+1033-                <h2 className="text-lg font-bold text-gray-900">Claim History</h2>
+1034-                <span className="text-xs text-gray-500">{claimRequests.length} Total</span>
+1035-              </div>
+1036-
+1037-              <div className="flex gap-2">
+1038-                <div className="relative flex-1">
+1039-                  <input
+1040-                    type="text"
+1041-                    placeholder="Search history..."
+1042-                    value={historySearchQuery}
+1043-                    onChange={(e) => setHistorySearchQuery(e.target.value)}
+1044-                    className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+1045-                  />
+1046-                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+1047-                </div>
+1048-                <select
+1049-                  value={historyStatusFilter}
+--
+1083-              ) : (
+1084-                filteredHistory.map(request => (
+1085-                  <div key={request.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between">
+1086-                    <div>
+1087-                      <h3 className="font-bold text-gray-900 text-sm">{request.businessName}</h3>
+1088-                      <p className="text-xs text-gray-500">Requested by User ID: {request.userId}</p>
+1089-                      <p className="text-[10px] text-gray-400 mt-1">{request.date}</p>
+1090-                    </div>
+1091-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider ${
+1092-                      request.status === 'approved' ? 'bg-green-100 text-green-700' :
+1093-                      request.status === 'rejected' ? 'bg-red-100 text-red-700' :
+1094-                      'bg-amber-100 text-amber-700'
+1095-                    }`}>
+1096-                      {request.status}
+1097-                    </span>
+1098-                  </div>
+1099-                ))
+1100-              )}
+1101-            </div>
+1102-          </>
+1103:        ) : activeTab === 'analytics' ? (
+1104-          <>
+1105-            <div className="flex flex-col gap-3 px-2 mb-4">
+1106-              <div className="flex justify-between items-center">
+1107-                <h2 className="text-lg font-bold text-gray-900">Analytics Dashboard</h2>
+1108-                <select 
+1109-                  value={analyticsTimeRange}
+1110-                  onChange={(e) => setAnalyticsTimeRange(e.target.value as '30days' | '1year')}
+1111-                  className="bg-white border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-1.5 outline-none focus:border-blue-500"
+1112-                >
+1113-                  <option value="30days">Last 30 Days</option>
+1114-                  <option value="1year">Last Year</option>
+1115-                </select>
+1116-              </div>
+1117-            </div>
+1118-
+1119-            <div className="grid grid-cols-2 gap-4">
+1120-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col">
+1121-                <span className="text-xs text-gray-500 font-medium mb-1">Total Users</span>
+1122-                <span className="text-2xl font-bold text-gray-900">{users.length}</span>
+1123-              </div>
+--
+1199-                    { name: 'Mar', claims: 45 },
+1200-                    { name: 'Apr', claims: 50 },
+1201-                    { name: 'May', claims: 65 },
+1202-                    { name: 'Jun', claims: 80 },
+1203-                  ] : [
+1204-                    { name: 'Week 1', claims: 15 },
+1205-                    { name: 'Week 2', claims: 22 },
+1206-                    { name: 'Week 3', claims: 18 },
+1207-                    { name: 'Week 4', claims: 25 },
+1208-                  ]}>
+1209-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+1210-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
+1211-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
+1212-                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+1213-                    <Line type="monotone" dataKey="claims" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4, fill: '#f59e0b', strokeWidth: 0 }} activeDot={{ r: 6 }} />
+1214-                  </LineChart>
+1215-                </ResponsiveContainer>
+1216-              </div>
+1217-            </div>
+1218-          </>
+1219:        ) : activeTab === 'user-notifications' ? (
+1220-          <>
+1221-            <div className="flex flex-col gap-3 px-2 mb-4">
+1222-              <div className="flex justify-between items-center">
+1223-                <h2 className="text-lg font-bold text-gray-900">User Notifications</h2>
+1224-                <span className="text-xs text-gray-500">{userNotifications.length} Total</span>
+1225-              </div>
+1226-            </div>
+1227-            <div className="flex flex-col gap-3">
+1228-              {userNotifications.length === 0 ? (
+1229-                <p className="text-gray-500 text-center py-8">No user notifications found.</p>
+1230-              ) : (
+1231-                userNotifications.map(notification => (
+1232-                  <div 
+1233-                    key={notification.id} 
+1234-                    className={`bg-white rounded-2xl p-4 shadow-sm border flex items-start gap-3 transition-colors cursor-pointer ${notification.read ? 'border-gray-100' : 'border-blue-200 bg-blue-50/30'}`}
+1235-                    onClick={() => {
+1236-                      if (!notification.read) {
+1237-                        setUserNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, read: true } : n));
+1238-                      }
+1239-                    }}
+--
+1250-                    <div className="flex-1 min-w-0">
+1251-                      <div className="flex justify-between items-start mb-1">
+1252-                        <h3 className={`text-sm font-bold ${notification.read ? 'text-gray-900' : 'text-blue-900'}`}>
+1253-                          {notification.type === 'claim_approved' ? 'Claim Approved' :
+1254-                           notification.type === 'claim_rejected' ? 'Claim Rejected' :
+1255-                           'System Message'}
+1256-                        </h3>
+1257-                        <span className="text-[10px] text-gray-400 whitespace-nowrap ml-2">{notification.date}</span>
+1258-                      </div>
+1259-                      <p className={`text-sm ${notification.read ? 'text-gray-600' : 'text-blue-800'}`}>{notification.message}</p>
+1260-                      <p className="text-xs text-gray-400 mt-2">User ID: {notification.userId}</p>
+1261-                    </div>
+1262-                    {!notification.read && (
+1263-                      <div className="w-2 h-2 rounded-full bg-blue-600 mt-2 shrink-0"></div>
+1264-                    )}
+1265-                  </div>
+1266-                ))
+1267-              )}
+1268-            </div>
+1269-          </>
+1270:        ) : activeTab === 'settings' ? (
+1271-          <>
+1272-            <div className="flex flex-col gap-3 px-2 mb-4">
+1273-              <div className="flex justify-between items-center">
+1274-                <h2 className="text-lg font-bold text-gray-900">Notification Settings</h2>
+1275-              </div>
+1276-              <p className="text-sm text-gray-500">Manage which types of notifications you receive as an administrator.</p>
+1277-            </div>
+1278-            
+1279-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
+1280-              <div className="p-4 flex items-center justify-between">
+1281-                <div>
+1282-                  <h3 className="font-bold text-gray-900 text-sm">New Business Claims</h3>
+1283-                  <p className="text-xs text-gray-500 mt-0.5">Receive alerts when a user submits a claim for a business.</p>
+1284-                </div>
+1285-                <label className="relative inline-flex items-center cursor-pointer">
+1286-                  <input 
+1287-                    type="checkbox" 
+1288-                    className="sr-only peer" 
+1289-                    checked={notificationSettings.newBusinessClaims}
+1290-                    onChange={(e) => setNotificationSettings(prev => ({ ...prev, newBusinessClaims: e.target.checked }))}

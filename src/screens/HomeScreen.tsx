@@ -229,14 +229,14 @@ export const HomeScreen = ({
 
       {/* Quick Links */}
       <div className="bg-white px-4 py-4 flex gap-3 overflow-x-auto scrollbar-hide border-b border-gray-100 mb-2">
-        <button onClick={() => onNavigate('login')} className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border border-blue-100 transition-transform active:scale-95">
-          <Briefcase size={14} /> B2B Portal
-        </button>
-        <button onClick={() => onNavigate('login')} className="flex items-center gap-1.5 bg-slate-50 text-slate-700 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border border-slate-200 transition-transform active:scale-95">
-          <ShieldCheck size={14} /> Admin Login
-        </button>
         <button className="flex items-center gap-1.5 bg-amber-50 text-amber-700 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border border-amber-100 transition-transform active:scale-95">
           <Star size={14} /> Top Rated
+        </button>
+        <button className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border border-blue-100 transition-transform active:scale-95">
+          <TrendingUp size={14} /> Trending
+        </button>
+        <button className="flex items-center gap-1.5 bg-green-50 text-green-700 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border border-green-100 transition-transform active:scale-95">
+          <MapPin size={14} /> Near Me
         </button>
       </div>
 

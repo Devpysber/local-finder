@@ -377,7 +377,7 @@ export const BusinessDashboardScreen = ({
   return (
     <div className="flex flex-col h-full bg-gray-50 overflow-y-auto scrollbar-hide pb-20 relative">
       {/* Header */}
-      <div className="bg-blue-600 px-6 pt-12 pb-6 rounded-b-3xl shadow-md">
+      <div className="bg-blue-600 px-6 pt-12 pb-6 rounded-b-3xl shadow-md shrink-0">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-white">Business Portal</h1>

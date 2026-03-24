@@ -1,22 +1,35 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Share2, Heart, MapPin, Phone, Clock, Star, MessageCircle, CheckCircle2, X } from 'lucide-react';
-import { ScreenType, Business, Review } from '../types';
+import { ArrowLeft, Share2, Heart, MapPin, Phone, Clock, Star, MessageCircle, CheckCircle2, X, Mail } from 'lucide-react';
+import { ScreenType, Business, Review, ClaimRequest, AdminNotification } from '../types';
 import { RatingStars } from '../components';
 
 export const BusinessDetailsScreen = ({ 
   business, 
   onBack,
   isFavorite,
-  onToggleFavorite
+  onToggleFavorite,
+  setClaimRequests,
+  setAdminNotifications,
+  setBusinesses
 }: { 
   business: Business, 
   onBack: () => void,
   isFavorite: boolean,
-  onToggleFavorite: (id: string) => void
+  onToggleFavorite: (id: string) => void,
+  setClaimRequests?: React.Dispatch<React.SetStateAction<ClaimRequest[]>>,
+  setAdminNotifications?: React.Dispatch<React.SetStateAction<AdminNotification[]>>,
+  setBusinesses?: React.Dispatch<React.SetStateAction<Business[]>>
 }) => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [newReviewRating, setNewReviewRating] = useState(0);
   const [newReviewText, setNewReviewText] = useState('');
+  
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactMessage, setContactMessage] = useState('');
+  
+  const [showClaimModal, setShowClaimModal] = useState(false);
+  const [claimForm, setClaimForm] = useState({ name: '', phone: '', email: '', role: '' });
+  const [claimSubmitted, setClaimSubmitted] = useState(false);
   
   // Local state for reviews to simulate adding a new one
   const [localReviews, setLocalReviews] = useState<Review[]>(business.reviews || []);
@@ -145,7 +158,34 @@ export const BusinessDetailsScreen = ({
         >
           <MessageCircle size={18} /> WhatsApp
         </button>
+        <button 
+          onClick={() => setShowContactModal(true)}
+          className="flex-1 bg-gray-900 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm shadow-gray-200 active:scale-[0.98] transition-transform"
+        >
+          <Mail size={18} /> Contact Us
+        </button>
       </div>
+
+      {/* Claim Business Banner */}
+      {business.claimStatus === 'unclaimed' && (
+        <div className="bg-amber-50 px-4 py-4 mb-2 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 shrink-0">
+              <CheckCircle2 size={20} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-amber-900">Is this your business?</h3>
+              <p className="text-xs text-amber-700">Claim it now to manage your listing.</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => setShowClaimModal(true)}
+            className="bg-amber-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm whitespace-nowrap active:scale-95 transition-transform"
+          >
+            Claim Now
+          </button>
+        </div>
+      )}
 
       {/* Info Section */}
       <div className="bg-white p-4 mb-2 shadow-sm">
@@ -314,6 +354,178 @@ export const BusinessDetailsScreen = ({
                 Submit Review
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Contact Us Modal */}
+      {showContactModal && (
+        <div className="absolute inset-0 z-50 flex flex-col justify-end">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowContactModal(false)}></div>
+          <div className="bg-white rounded-t-3xl p-4 flex flex-col relative z-10 animate-in slide-in-from-bottom-full duration-300">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Contact {business.name}</h2>
+              <button onClick={() => setShowContactModal(false)} className="p-2 text-gray-500 bg-gray-100 rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              // In a real app, this would send the message to the backend
+              alert('Message sent successfully!');
+              setShowContactModal(false);
+              setContactMessage('');
+            }}>
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Your Message</label>
+                <textarea 
+                  required
+                  rows={5}
+                  value={contactMessage}
+                  onChange={(e) => setContactMessage(e.target.value)}
+                  placeholder="How can we help you?" 
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none"
+                ></textarea>
+              </div>
+
+              <button 
+                type="submit"
+                disabled={contactMessage.trim() === ''}
+                className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold text-lg shadow-sm active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Send Message
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Claim Business Modal */}
+      {showClaimModal && (
+        <div className="absolute inset-0 z-50 flex flex-col justify-end">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowClaimModal(false)}></div>
+          <div className="bg-white rounded-t-3xl p-6 flex flex-col relative z-10 animate-in slide-in-from-bottom-full duration-300 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Claim Business</h2>
+              <button onClick={() => setShowClaimModal(false)} className="p-2 text-gray-500 bg-gray-100 rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+
+            {claimSubmitted ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600 mx-auto mb-4">
+                  <CheckCircle2 size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Claim Request Submitted!</h3>
+                <p className="text-gray-600 mb-6">We will review your request and get back to you within 24-48 hours.</p>
+                <button 
+                  onClick={() => setShowClaimModal(false)}
+                  className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow-sm"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                
+                if (setClaimRequests && setAdminNotifications && setBusinesses) {
+                  const newClaim: ClaimRequest = {
+                    id: `cr${Date.now()}`,
+                    businessId: business.id,
+                    businessName: business.name,
+                    userId: 'u1', // Assuming current user
+                    status: 'pending',
+                    date: new Date().toISOString().split('T')[0]
+                  };
+                  
+                  setClaimRequests(prev => [newClaim, ...prev]);
+                  
+                  setAdminNotifications(prev => [{
+                    id: `an${Date.now()}`,
+                    message: `New claim request for ${business.name}`,
+                    date: 'Just now',
+                    read: false,
+                    type: 'claim'
+                  }, ...prev]);
+                  
+                  setBusinesses(prev => prev.map(b => 
+                    b.id === business.id ? { ...b, claimStatus: 'pending' } : b
+                  ));
+                }
+                
+                setClaimSubmitted(true);
+              }}>
+                <div className="bg-blue-50 p-4 rounded-xl mb-6">
+                  <p className="text-sm text-blue-800">
+                    <strong>{business.name}</strong> is currently unclaimed. Provide your details below to verify ownership and take control of this listing.
+                  </p>
+                </div>
+                
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Full Name</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={claimForm.name}
+                      onChange={(e) => setClaimForm({...claimForm, name: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      placeholder="John Doe"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Business Email</label>
+                    <input 
+                      type="email" 
+                      required
+                      value={claimForm.email}
+                      onChange={(e) => setClaimForm({...claimForm, email: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      placeholder="john@example.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Phone Number</label>
+                    <input 
+                      type="tel" 
+                      required
+                      value={claimForm.phone}
+                      onChange={(e) => setClaimForm({...claimForm, phone: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      placeholder="+1 (555) 000-0000"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Your Role</label>
+                    <select 
+                      required
+                      value={claimForm.role}
+                      onChange={(e) => setClaimForm({...claimForm, role: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">Select your role</option>
+                      <option value="owner">Owner</option>
+                      <option value="manager">Manager</option>
+                      <option value="employee">Employee</option>
+                      <option value="agency">Marketing Agency</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button 
+                  type="submit"
+                  className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg shadow-sm active:scale-[0.98] transition-transform"
+                >
+                  Submit Claim Request
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}
