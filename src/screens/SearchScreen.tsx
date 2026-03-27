@@ -1,24 +1,29 @@
-import React, { useState } from 'react';
-import { Search, ArrowLeft, Filter, SlidersHorizontal, X, Star, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, ArrowLeft, Filter, SlidersHorizontal, X, Star, Check, Loader2 } from 'lucide-react';
 import { ScreenType, Business } from '../types';
-import { BUSINESSES, CATEGORIES } from '../data';
+import { CATEGORIES } from '../data';
 import { BusinessCard } from '../components';
+import { api } from '../services/api';
 
 export const SearchScreen = ({ 
   onNavigate, 
   onSelectBusiness,
   favorites,
   onToggleFavorite,
-  initialQuery = ''
+  initialQuery = '',
+  businesses = []
 }: { 
   onNavigate: (s: ScreenType) => void,
   onSelectBusiness: (b: Business) => void,
   favorites: string[],
   onToggleFavorite: (id: string) => void,
-  initialQuery?: string
+  initialQuery?: string,
+  businesses?: Business[]
 }) => {
   const [query, setQuery] = useState(initialQuery);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<Business[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   
   // Filter state
   const [showFilters, setShowFilters] = useState(false);
@@ -27,8 +32,29 @@ export const SearchScreen = ({
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
-  const allAmenities = Array.from(new Set(BUSINESSES.flatMap(b => b.amenities || [])));
-  const allServices = Array.from(new Set(BUSINESSES.flatMap(b => b.services || [])));
+  const allAmenities = Array.from(new Set(businesses.flatMap(b => b.amenities || [])));
+  const allServices = Array.from(new Set(businesses.flatMap(b => b.services || [])));
+
+  useEffect(() => {
+    const performSearch = async () => {
+      setIsSearching(true);
+      try {
+        const { data } = await api.searchBusinesses(query, undefined, activeCategory || undefined);
+        setSearchResults(data);
+      } catch (error) {
+        console.error('Search failed:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(() => {
+      performSearch();
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [query, activeCategory]);
 
   const toggleAmenity = (amenity: string) => {
     setSelectedAmenities(prev => 
@@ -49,10 +75,7 @@ export const SearchScreen = ({
     setSelectedServices([]);
   };
 
-  const filteredBusinesses = BUSINESSES.filter(b => {
-    const matchesQuery = b.name.toLowerCase().includes(query.toLowerCase()) || 
-                         b.category.toLowerCase().includes(query.toLowerCase());
-    const matchesCategory = activeCategory ? b.category === activeCategory : true;
+  const filteredBusinesses = searchResults.filter(b => {
     const matchesRating = b.rating >= minRating;
     const matchesPrice = selectedPrice ? b.priceRange === selectedPrice : true;
     const matchesAmenities = selectedAmenities.length === 0 || 
@@ -60,7 +83,7 @@ export const SearchScreen = ({
     const matchesServices = selectedServices.length === 0 || 
       selectedServices.every(s => b.services?.includes(s));
 
-    return matchesQuery && matchesCategory && matchesRating && matchesPrice && matchesAmenities && matchesServices;
+    return matchesRating && matchesPrice && matchesAmenities && matchesServices;
   });
 
   return (
@@ -120,30 +143,37 @@ export const SearchScreen = ({
       {/* Results */}
       <div className="p-4">
         <p className="text-sm text-gray-500 font-medium mb-4">
-          {filteredBusinesses.length} results found
+          {isSearching ? 'Searching...' : `${filteredBusinesses.length} results found`}
         </p>
         
-        <div className="flex flex-col gap-4">
-          {filteredBusinesses.map(business => (
-            <BusinessCard 
-              key={business.id} 
-              business={business} 
-              onClick={() => onSelectBusiness(business)}
-              isFavorite={favorites.includes(business.id)}
-              onToggleFavorite={onToggleFavorite}
-            />
-          ))}
-          
-          {filteredBusinesses.length === 0 && (
-            <div className="text-center py-10">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search size={24} className="text-gray-400" />
+        {isSearching ? (
+          <div className="flex flex-col items-center justify-center py-10">
+            <Loader2 size={32} className="text-blue-500 animate-spin mb-4" />
+            <p className="text-gray-500 font-medium">Finding businesses...</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {filteredBusinesses.map(business => (
+              <BusinessCard 
+                key={business.id} 
+                business={business} 
+                onClick={() => onSelectBusiness(business)}
+                isFavorite={favorites.includes(business.id)}
+                onToggleFavorite={onToggleFavorite}
+              />
+            ))}
+            
+            {filteredBusinesses.length === 0 && (
+              <div className="text-center py-10">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search size={24} className="text-gray-400" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">No results found</h3>
+                <p className="text-gray-500 text-sm">Try adjusting your search or filters</p>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">No results found</h3>
-              <p className="text-gray-500 text-sm">Try adjusting your search or filters</p>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Filter Modal */}

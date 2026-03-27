@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Share2, Heart, MapPin, Phone, Clock, Star, MessageCircle, CheckCircle2, X, Mail } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Share2, Heart, MapPin, Phone, Clock, Star, MessageCircle, CheckCircle2, X, Mail, Loader2 } from 'lucide-react';
 import { ScreenType, Business, Review, ClaimRequest, AdminNotification } from '../types';
 import { RatingStars } from '../components';
+import { api } from '../services/api';
 
 export const BusinessDetailsScreen = ({ 
-  business, 
+  business: initialBusiness, 
   onBack,
   isFavorite,
   onToggleFavorite,
@@ -20,21 +21,53 @@ export const BusinessDetailsScreen = ({
   setAdminNotifications?: React.Dispatch<React.SetStateAction<AdminNotification[]>>,
   setBusinesses?: React.Dispatch<React.SetStateAction<Business[]>>
 }) => {
+  const [business, setBusiness] = useState<Business>(initialBusiness);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchDetails = async () => {
+      if (!initialBusiness?.id) return;
+      setIsLoading(true);
+      try {
+        const businessData = await api.getBusinessById(initialBusiness.id);
+        setBusiness(businessData);
+        setLocalReviews(businessData.reviews || []);
+      } catch (error) {
+        console.error('Failed to fetch business details:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDetails();
+  }, [initialBusiness?.id]);
+
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [newReviewRating, setNewReviewRating] = useState(0);
   const [newReviewText, setNewReviewText] = useState('');
   
   const [showContactModal, setShowContactModal] = useState(false);
   const [contactMessage, setContactMessage] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
   
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [claimForm, setClaimForm] = useState({ name: '', phone: '', email: '', role: '' });
   const [claimSubmitted, setClaimSubmitted] = useState(false);
   
   // Local state for reviews to simulate adding a new one
-  const [localReviews, setLocalReviews] = useState<Review[]>(business.reviews || []);
+  const [localReviews, setLocalReviews] = useState<Review[]>(initialBusiness.reviews || []);
 
   if (!business) return null;
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-full bg-gray-50 items-center justify-center">
+        <Loader2 size={40} className="text-blue-500 animate-spin mb-4" />
+        <p className="text-gray-500 font-medium">Loading business details...</p>
+      </div>
+    );
+  }
 
   const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();
@@ -370,18 +403,55 @@ export const BusinessDetailsScreen = ({
               </button>
             </div>
 
-            <form onSubmit={(e) => {
+            <form onSubmit={async (e) => {
               e.preventDefault();
-              // In a real app, this would send the message to the backend
-              alert('Message sent successfully!');
-              setShowContactModal(false);
-              setContactMessage('');
+              setIsSubmittingLead(true);
+              try {
+                await api.submitLead(
+                  business.id,
+                  contactName,
+                  contactPhone,
+                  contactMessage
+                );
+                alert('Message sent successfully!');
+                setShowContactModal(false);
+                setContactMessage('');
+                setContactName('');
+                setContactPhone('');
+              } catch (error) {
+                console.error('Failed to submit lead:', error);
+                alert('Failed to send message. Please try again.');
+              } finally {
+                setIsSubmittingLead(false);
+              }
             }}>
+              <div className="mb-4">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Your Name</label>
+                <input 
+                  type="text"
+                  required
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  placeholder="John Doe" 
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Your Phone</label>
+                <input 
+                  type="tel"
+                  required
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  placeholder="+1 (555) 000-0000" 
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                />
+              </div>
               <div className="mb-6">
                 <label className="block text-sm font-bold text-gray-700 mb-2">Your Message</label>
                 <textarea 
                   required
-                  rows={5}
+                  rows={4}
                   value={contactMessage}
                   onChange={(e) => setContactMessage(e.target.value)}
                   placeholder="How can we help you?" 
@@ -391,10 +461,10 @@ export const BusinessDetailsScreen = ({
 
               <button 
                 type="submit"
-                disabled={contactMessage.trim() === ''}
-                className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold text-lg shadow-sm active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={contactMessage.trim() === '' || contactName.trim() === '' || contactPhone.trim() === '' || isSubmittingLead}
+                className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold text-lg shadow-sm active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
               >
-                Send Message
+                {isSubmittingLead ? <Loader2 size={24} className="animate-spin" /> : 'Send Message'}
               </button>
             </form>
           </div>

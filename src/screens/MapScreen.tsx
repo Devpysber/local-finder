@@ -1,14 +1,15 @@
 import React, { useState, useRef } from 'react';
 import { ScreenType, Business } from '../types';
-import { BUSINESSES } from '../data';
 import { ArrowLeft, MapPin, Search, Navigation, Star, X } from 'lucide-react';
 
 export const MapScreen = ({ 
   onNavigate, 
-  onSelectBusiness 
+  onSelectBusiness,
+  businesses
 }: { 
   onNavigate: (s: ScreenType) => void,
-  onSelectBusiness: (b: Business) => void
+  onSelectBusiness: (b: Business) => void,
+  businesses: Business[]
 }) => {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -79,7 +80,7 @@ export const MapScreen = ({
         <div className="absolute top-0 bottom-0 left-1/2 w-6 bg-white/60 transform rotate-12 pointer-events-none"></div>
         
         {/* Map Pins */}
-        {BUSINESSES.map((business, idx) => {
+        {businesses.map((business, idx) => {
           // Generate pseudo-random positions for the demo
           const top = `${20 + (idx * 15)}%`;
           const left = `${20 + ((idx % 3) * 25)}%`;

@@ -3,10 +3,10 @@ import {
   Search, MapPin, Bell, ChevronRight, Mic, Star, 
   TrendingUp, ShieldCheck, Briefcase, User,
   Utensils, Bed, Wrench, Zap, Stethoscope, Scissors, Dumbbell, Grid,
-  Clock, X, ArrowLeft
+  Clock, X, ArrowLeft, Loader2
 } from 'lucide-react';
 import { ScreenType, Business } from '../types';
-import { CATEGORIES, BUSINESSES, TRENDING_SEARCHES } from '../data';
+import { CATEGORIES, TRENDING_SEARCHES } from '../data';
 import { BusinessCard } from '../components';
 
 const getCategoryIcon = (name: string) => {
@@ -39,12 +39,16 @@ export const HomeScreen = ({
   onNavigate, 
   onSelectBusiness,
   favorites,
-  onToggleFavorite
+  onToggleFavorite,
+  businesses,
+  isLoading
 }: { 
   onNavigate: (s: ScreenType, query?: string) => void,
   onSelectBusiness: (b: Business) => void,
   favorites: string[],
-  onToggleFavorite: (id: string) => void
+  onToggleFavorite: (id: string) => void,
+  businesses: Business[],
+  isLoading: boolean
 }) => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,8 +60,8 @@ export const HomeScreen = ({
       // Simple mock auto-suggestions based on businesses and categories
       const allKeywords = [
         ...CATEGORIES.map(c => c.name),
-        ...BUSINESSES.map(b => b.name),
-        ...BUSINESSES.flatMap(b => b.services)
+        ...businesses.map(b => b.name),
+        ...businesses.flatMap(b => b.services || [])
       ];
       
       const filtered = Array.from(new Set(
@@ -68,7 +72,7 @@ export const HomeScreen = ({
     } else {
       setSuggestions([]);
     }
-  }, [searchQuery]);
+  }, [searchQuery, businesses]);
 
   const handleSearchSubmit = (query: string) => {
     if (query.trim()) {
@@ -305,17 +309,31 @@ export const HomeScreen = ({
           <h2 className="text-lg font-bold text-gray-900 tracking-tight">Popular Near You</h2>
           <button className="text-blue-600 text-sm font-semibold hover:underline">View All</button>
         </div>
-        <div className="flex flex-col gap-5">
-          {BUSINESSES.filter(b => b.isFeatured).map(business => (
-            <BusinessCard 
-              key={business.id} 
-              business={business} 
-              onClick={() => onSelectBusiness(business)}
-              isFavorite={favorites.includes(business.id)}
-              onToggleFavorite={onToggleFavorite}
-            />
-          ))}
-        </div>
+        
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-10">
+            <Loader2 size={32} className="text-blue-500 animate-spin mb-4" />
+            <p className="text-gray-500 font-medium">Finding local businesses...</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-5">
+            {businesses.filter(b => b.isFeatured).length > 0 ? (
+              businesses.filter(b => b.isFeatured).map(business => (
+                <BusinessCard 
+                  key={business.id} 
+                  business={business} 
+                  onClick={() => onSelectBusiness(business)}
+                  isFavorite={favorites.includes(business.id)}
+                  onToggleFavorite={onToggleFavorite}
+                />
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No featured businesses found.</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

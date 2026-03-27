@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "db:init": "tsx server/scripts/initDb.ts"
   },
   "dependencies": {
     "@google/genai": "^1.45.0",

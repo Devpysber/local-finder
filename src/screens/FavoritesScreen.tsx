@@ -1,6 +1,5 @@
 import React from 'react';
 import { ScreenType, Business } from '../types';
-import { BUSINESSES } from '../data';
 import { BusinessCard } from '../components';
 import { Heart } from 'lucide-react';
 
@@ -8,14 +7,16 @@ export const FavoritesScreen = ({
   onNavigate, 
   onSelectBusiness,
   favorites,
-  onToggleFavorite
+  onToggleFavorite,
+  businesses
 }: { 
   onNavigate: (s: ScreenType) => void,
   onSelectBusiness: (b: Business) => void,
   favorites: string[],
-  onToggleFavorite: (id: string) => void
+  onToggleFavorite: (id: string) => void,
+  businesses: Business[]
 }) => {
-  const favoriteBusinesses = BUSINESSES.filter(b => favorites.includes(b.id));
+  const favoriteBusinesses = businesses.filter(b => favorites.includes(b.id));
 
   return (
     <div className="flex flex-col h-full bg-gray-50 pb-20 overflow-y-auto scrollbar-hide">
